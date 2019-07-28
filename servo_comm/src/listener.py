@@ -26,6 +26,37 @@ class ServoListener(Node):
             10
         )
 
+        self.cache = []
+        self.timer_period = 0.2
+        self.tmr = self.create_timer(self.timer_period, self.timer_callback)
+
+    def timer_callback(self):
+        data = self.cache
+        cmd = ''
+        i = 0
+        time = int(self.timer_period * 1000)
+        while i < len(data):
+            servo = data[i].number
+            angle = data[i].angle
+            duty = self.angle_to_duty(servo, angle)
+
+            cmd += f'#{servo}P{duty}T{time}'  # TODO time?
+
+            i += 1
+
+        cmd += '\r\n'
+        byts = cmd.encode('ascii')
+        self.port.write(byts)
+
+        self.get_logger().info(f'Command sent: "{cmd}"')
+
+    def listener_callback(self, msg):
+        self.cache = msg.data
+
+    def angle_to_duty(self, servo, angle):
+        duty = self.centers[servo] + int(angle * 1000. / 90.) * self.dirs[servo]
+        return duty
+
     def load_config(self):
         path = os.path.join(
             get_package_share_directory('servo_comm'),
@@ -40,41 +71,13 @@ class ServoListener(Node):
                 self.dirs[i] = int(row['dir'])
                 i += 1
 
-    def listener_callback(self, msg):
-        cmd = ''
-        i = 0
-        while i < len(msg.data):
-            servo = msg.data[i].number
-            angle = msg.data[i].angle
-            time = msg.data[i].time
-            duty = self.angle_to_duty(servo, angle)
-
-            cmd += f'#{servo}P{duty}T{time}'  # TODO time?
-
-            i += 1
-
-        cmd += '\r\n'
-        byts = cmd.encode('ascii')
-        self.port.write('\r\n'.encode('ascii'))
-        self.port.write(byts)
-
-        self.get_logger().info(f'Command sent: "{cmd}"')
-
-    def angle_to_duty(self, servo, angle):
-        if angle < -90.:    # is it needed?
-            angle = -90.
-        elif angle > 90.:
-            angle = 90.
-
-        duty = self.centers[servo] + int(angle * 1000. / 90.) * self.dirs[servo]
-        return duty
-
 
 def main(args=None):
     rclpy.init(args=args)
 
     servo_listener = ServoListener()
 
+    print('Ready!')
     rclpy.spin(servo_listener)
 
     servo_listener.destroy_node()
