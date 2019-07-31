@@ -5,7 +5,7 @@ package_name = 'servo_comm'
 setup(
     name=package_name,
     version='0.0.1',
-    packages=['src'],
+    packages=['servo_comm'],
     install_requires=['setuptools'],
     data_files=[
         ('share/' + package_name, ['package.xml', 'servo_center.csv']),
