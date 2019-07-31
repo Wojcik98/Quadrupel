@@ -27,7 +27,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'listener = src.listener:main',
+            'listener = servo_comm.listener:main',
         ],
     },
 )
