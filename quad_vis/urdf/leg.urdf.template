@@ -1,0 +1,78 @@
+<link name="${leg}_base"/>
+
+<!-- *******************************   LEG: ${leg}   ****************** -->
+<link name="${leg}_link_1">
+    <visual>
+        <geometry>
+            <box size="${i2_l_len} ${l_width} ${l_width}"/>
+        </geometry>
+        <origin xyz="${i2_l_xyz}" rpy="${i2_l_rpy}"/>
+        <material name="blue"/>
+    </visual>
+</link>
+
+<link name="${leg}_link_2">
+    <visual>
+        <geometry>
+            <box size="${i3_l_len} ${l_width} ${l_width}"/>
+        </geometry>
+        <origin xyz="${i3_l_xyz}" rpy="${i3_l_rpy}"/>
+        <material name="blue"/>
+    </visual>
+</link>
+
+<link name="${leg}_link_3">
+    <visual>
+        <geometry>
+            <box size="${i4_l_len} ${l_width} ${l_width}"/>
+        </geometry>
+        <origin xyz="${i4_l_xyz}" rpy="${i4_l_rpy}"/>
+        <material name="blue"/>
+    </visual>
+</link>
+
+<link name="${leg}_link_4">
+    <visual>
+        <geometry>
+            <box size="0.01 0.01 0.01"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <material name="blue"/>
+    </visual>
+</link>
+
+<joint name="base_to_${leg}_base" type="fixed">
+    <parent link="base_link"/>
+    <child link="${leg}_base"/>
+    <origin xyz="${front_sign}0.046 ${side_sign}0.05 0" rpy="0 0 ${side_sign}1.5708"/>
+</joint>
+
+<joint name="${leg}_base_to_${leg}_link1" type="revolute">
+    <parent link="${leg}_base"/>
+    <child link="${leg}_link_1"/>
+    <origin xyz="${i1_j_xyz}" rpy="${i1_j_rpy}"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="-1.7508" upper="1.7508" velocity="0.5"/>
+</joint>
+
+<joint name="${leg}_link1_to_${leg}_link2" type="revolute">
+    <parent link="${leg}_link_1"/>
+    <child link="${leg}_link_2"/>
+    <origin xyz="${i2_j_xyz}" rpy="${i2_j_rpy}"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="-1.7508" upper="1.7508" velocity="0.5"/>
+</joint>
+
+<joint name="${leg}_link2_to_${leg}_link3" type="revolute">
+    <parent link="${leg}_link_2"/>
+    <child link="${leg}_link_3"/>
+    <origin xyz="${i3_j_xyz}" rpy="${i3_j_rpy}"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="-1.7508" upper="1.7508" velocity="0.5"/>
+</joint>
+
+<joint name="${leg}_link3_to_${leg}_link4" type="fixed">
+    <parent link="${leg}_link_3"/>
+    <child link="${leg}_link_4"/>
+    <origin xyz="${i3_j_xyz}" rpy="${i3_j_rpy}"/>
+</joint>
