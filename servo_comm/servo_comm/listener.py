@@ -1,15 +1,31 @@
 import csv
 import serial
 import os
+from math import pi
 
 import rclpy
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
 
-from custom.msg import ServoCmd, ServoCmdArray
+from sensor_msgs.msg import JointState
 
 
 class ServoListener(Node):
+    joint_to_servo = {
+        f'rear_right_base_to_rear_right_link1': 1,
+        f'rear_right_link1_to_rear_right_link2': 2,
+        f'rear_right_link2_to_rear_right_link3': 3,
+        f'rear_left_base_to_rear_left_link1': 4,
+        f'rear_left_link1_to_rear_left_link2': 5,
+        f'rear_left_link2_to_rear_left_link3': 6,
+        f'front_right_base_to_front_right_link1': 7,
+        f'front_right_link1_to_front_right_link2': 8,
+        f'front_right_link2_to_front_right_link3': 9,
+        f'front_left_base_to_front_left_link1': 10,
+        f'front_left_link1_to_front_left_link2': 11,
+        f'front_left_link2_to_front_left_link3': 12,
+    }
+
     def __init__(self):
         super().__init__('servo_listener')
         self.port = serial.Serial('/dev/ttyS0')
@@ -20,8 +36,8 @@ class ServoListener(Node):
         self.load_config()
 
         self.subscription = self.create_subscription(
-            ServoCmdArray,
-            'servos',
+            JointState,
+            'joint_states',
             self.listener_callback,
             10
         )
@@ -35,9 +51,10 @@ class ServoListener(Node):
         cmd = ''
         i = 0
         time = int(self.timer_period * 1000)
-        while i < len(data):
-            servo = data[i].number
-            angle = data[i].angle
+        while i < len(data.name):
+            joint = data.name[i]
+            servo = self.joint_to_servo[joint]
+            angle = data.position[i]
             duty = self.angle_to_duty(servo, angle)
 
             cmd += f'#{servo}P{duty}T{time}'  # TODO time?
@@ -51,10 +68,11 @@ class ServoListener(Node):
         self.get_logger().info(f'Command sent: "{cmd}"')
 
     def listener_callback(self, msg):
-        self.cache = msg.data
+        self.cache = msg
 
     def angle_to_duty(self, servo, angle):
-        duty = self.centers[servo] + int(angle * 1000. / 90.) * self.dirs[servo]
+        # TODO count from 0 meaning facing front of robot
+        duty = self.centers[servo] + int(angle * 1000. / (pi / 2.)) * self.dirs[servo]
         return duty
 
     def load_config(self):
