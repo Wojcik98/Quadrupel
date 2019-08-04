@@ -1,5 +1,6 @@
 import csv
 from string import Template
+from math import pi
 
 from transformations import *
 
@@ -9,6 +10,8 @@ xaxis, yaxis, zaxis = (1, 0, 0), (0, 1, 0), (0, 0, 1)
 def generate_leg(leg: str, params: list):
     front_signs = {'front': '', 'rear': '-'}
     side_signs = {'left': '', 'right': '-'}
+    lower_limits = {'left': '0', 'right': str(-pi)}
+    upper_limits = {'left': str(pi), 'right': '0'}
     with open('../urdf/leg.urdf.template', 'r') as file:
         leg_template = Template(file.read())
 
@@ -16,6 +19,8 @@ def generate_leg(leg: str, params: list):
     front, side = leg.split('_')
     mappings['front_sign'] = front_signs[front]
     mappings['side_sign'] = side_signs[side]
+    mappings['lower_limit'] = lower_limits[side]
+    mappings['upper_limit'] = upper_limits[side]
 
     for param in params:
         try:
@@ -57,7 +62,7 @@ def generate_leg(leg: str, params: list):
 
 
 def generate_robot(legs_description: list):
-    with open('../urdf/new_robot.urdf.template', 'r') as file:
+    with open('../urdf/robot.urdf.template', 'r') as file:
         robot_template = Template(file.read())
 
     mapping = {'legs_description': '\n'.join(legs_description)}

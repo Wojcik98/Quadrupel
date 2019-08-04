@@ -1,17 +1,17 @@
-joint,d     ,th ,a    ,al    ,leg
-i1   ,0     ,0  ,0    ,0     ,front_left
-i2   ,-0.032,var,0.02 ,1.5708,front_left
-i3   ,0     ,var,0.067,0     ,front_left
-i4   ,0     ,0  ,0.05 ,0     ,front_left
-i1   ,0     ,0  ,0    ,0     ,front_right
-i2   ,-0.032,var,0.02 ,1.5708,front_right
-i3   ,0     ,var,0.067,0     ,front_right
-i4   ,0     ,0  ,0.05 ,0     ,front_right
-i1   ,0     ,0  ,0    ,0     ,rear_left
-i2   ,-0.032,var,0.02 ,1.5708,rear_left
-i3   ,0     ,var,0.067,0     ,rear_left
-i4   ,0     ,0  ,0.05 ,0     ,rear_left
-i1   ,0     ,0  ,0    ,0     ,rear_right
-i2   ,-0.032,var,0.02 ,1.5708,rear_right
-i3   ,0     ,var,0.067,0     ,rear_right
-i4   ,0     ,0  ,0.05 ,0     ,rear_right
+joint,d,th,a,al,leg
+i1,0,0,0,0,front_left
+i2,-0.032,var,0.02,1.5708,front_left
+i3,0,var,0.067,0,front_left
+i4,0,0,0.05,0,front_left
+i1,0,0,0,0,front_right
+i2,-0.032,var,0.02,1.5708,front_right
+i3,0,var,0.067,0,front_right
+i4,0,0,0.05,0,front_right
+i1,0,0,0,0,rear_left
+i2,-0.032,var,0.02,1.5708,rear_left
+i3,0,var,0.067,0,rear_left
+i4,0,0,0.05,0,rear_left
+i1,0,0,0,0,rear_right
+i2,-0.032,var,0.02,1.5708,rear_right
+i3,0,var,0.067,0,rear_right
+i4,0,0,0.05,0,rear_right

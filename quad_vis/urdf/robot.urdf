@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <robot name="Quadrupel">
- 
+
     <material name="blue">
         <color rgba="0 0 0.8 1"/>
     </material>
 
-    <material name="white"> 
+    <material name="white">
         <color rgba="1 1 1 1"/>
     </material>
 
@@ -65,7 +65,7 @@
 <joint name="base_to_front_left_base" type="fixed">
     <parent link="base_link"/>
     <child link="front_left_base"/>
-    <origin xyz="0.046 0.05 0" rpy="0 0 1.5708"/>
+    <origin xyz="0.046 0.05 0" rpy="0 0 0"/>
 </joint>
 
 <joint name="front_left_base_to_front_left_link1" type="revolute">
@@ -73,7 +73,7 @@
     <child link="front_left_link_1"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 -0.0 0.0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000.0" lower="-1.7508" upper="1.7508" velocity="0.5"/>
+    <limit effort="1000.0" lower="0" upper="3.141592653589793" velocity="0.5"/>
 </joint>
 
 <joint name="front_left_link1_to_front_left_link2" type="revolute">
@@ -144,7 +144,7 @@
 <joint name="base_to_front_right_base" type="fixed">
     <parent link="base_link"/>
     <child link="front_right_base"/>
-    <origin xyz="0.046 -0.05 0" rpy="0 0 -1.5708"/>
+    <origin xyz="0.046 -0.05 0" rpy="0 0 0"/>
 </joint>
 
 <joint name="front_right_base_to_front_right_link1" type="revolute">
@@ -152,7 +152,7 @@
     <child link="front_right_link_1"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 -0.0 0.0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000.0" lower="-1.7508" upper="1.7508" velocity="0.5"/>
+    <limit effort="1000.0" lower="-3.141592653589793" upper="0" velocity="0.5"/>
 </joint>
 
 <joint name="front_right_link1_to_front_right_link2" type="revolute">
@@ -223,7 +223,7 @@
 <joint name="base_to_rear_left_base" type="fixed">
     <parent link="base_link"/>
     <child link="rear_left_base"/>
-    <origin xyz="-0.046 0.05 0" rpy="0 0 1.5708"/>
+    <origin xyz="-0.046 0.05 0" rpy="0 0 0"/>
 </joint>
 
 <joint name="rear_left_base_to_rear_left_link1" type="revolute">
@@ -231,7 +231,7 @@
     <child link="rear_left_link_1"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 -0.0 0.0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000.0" lower="-1.7508" upper="1.7508" velocity="0.5"/>
+    <limit effort="1000.0" lower="0" upper="3.141592653589793" velocity="0.5"/>
 </joint>
 
 <joint name="rear_left_link1_to_rear_left_link2" type="revolute">
@@ -302,7 +302,7 @@
 <joint name="base_to_rear_right_base" type="fixed">
     <parent link="base_link"/>
     <child link="rear_right_base"/>
-    <origin xyz="-0.046 -0.05 0" rpy="0 0 -1.5708"/>
+    <origin xyz="-0.046 -0.05 0" rpy="0 0 0"/>
 </joint>
 
 <joint name="rear_right_base_to_rear_right_link1" type="revolute">
@@ -310,7 +310,7 @@
     <child link="rear_right_link_1"/>
     <origin xyz="0.0 0.0 0.0" rpy="0.0 -0.0 0.0"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000.0" lower="-1.7508" upper="1.7508" velocity="0.5"/>
+    <limit effort="1000.0" lower="-3.141592653589793" upper="0" velocity="0.5"/>
 </joint>
 
 <joint name="rear_right_link1_to_rear_right_link2" type="revolute">

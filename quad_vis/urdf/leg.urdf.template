@@ -44,7 +44,7 @@
 <joint name="base_to_${leg}_base" type="fixed">
     <parent link="base_link"/>
     <child link="${leg}_base"/>
-    <origin xyz="${front_sign}0.046 ${side_sign}0.05 0" rpy="0 0 ${side_sign}1.5708"/>
+    <origin xyz="${front_sign}0.046 ${side_sign}0.06 0" rpy="0 0 0"/>
 </joint>
 
 <joint name="${leg}_base_to_${leg}_link1" type="revolute">
@@ -52,7 +52,7 @@
     <child link="${leg}_link_1"/>
     <origin xyz="${i1_j_xyz}" rpy="${i1_j_rpy}"/>
     <axis xyz="0 0 1"/>
-    <limit effort="1000.0" lower="-1.7508" upper="1.7508" velocity="0.5"/>
+    <limit effort="1000.0" lower="${lower_limit}" upper="${upper_limit}" velocity="0.5"/>
 </joint>
 
 <joint name="${leg}_link1_to_${leg}_link2" type="revolute">
