@@ -42,11 +42,14 @@ class ServoListener(Node):
             10
         )
 
-        self.cache = []
+        self.cache = None
         self.timer_period = 0.2
         self.tmr = self.create_timer(self.timer_period, self.timer_callback)
 
     def timer_callback(self):
+        if self.cache is None:
+            return
+
         data = self.cache
         cmd = ''
         i = 0
@@ -57,7 +60,7 @@ class ServoListener(Node):
             angle = data.position[i]
             duty = self.angle_to_duty(servo, angle)
 
-            cmd += f'#{servo}P{duty}T{time}'  # TODO time?
+            cmd += f'#{servo}P{duty}T{time}'
 
             i += 1
 
@@ -71,8 +74,11 @@ class ServoListener(Node):
         self.cache = msg
 
     def angle_to_duty(self, servo, angle):
-        # TODO count from 0 meaning facing front of robot
         duty = self.centers[servo] + int(angle * 1000. / (pi / 2.)) * self.dirs[servo]
+        if duty < 0 and duty + 4000 <= 2550:
+            duty += 4000    # reverse direction
+        duty = max(duty, 460)
+        duty = min(duty, 2550)
         return duty
 
     def load_config(self):
@@ -85,7 +91,7 @@ class ServoListener(Node):
             reader = csv.DictReader(file)
             i = 1
             for row in reader:
-                self.centers[i] = int(row['center'])
+                self.centers[i] = int(row['zero'])
                 self.dirs[i] = int(row['dir'])
                 i += 1
 
