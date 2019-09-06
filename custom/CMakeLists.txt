@@ -28,6 +28,7 @@ rosidl_generate_interfaces(custom
   "msg/ServoCmd.msg"
   "msg/ServoCmdArray.msg"
   "srv/LegInvKin.srv"
+  "srv/Transform.srv"
   DEPENDENCIES builtin_interfaces
 )
 

@@ -28,6 +28,7 @@ setup(
     entry_points={
         'console_scripts': [
             f'naive_crawl = {package_name}.naive_crawl:main',
+            f'transform_test = {package_name}.transform_test:main',
         ],
     },
 )
