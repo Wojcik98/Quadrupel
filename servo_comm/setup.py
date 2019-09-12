@@ -8,6 +8,8 @@ setup(
     packages=['servo_comm'],
     install_requires=['setuptools'],
     data_files=[
+        ('share/ament_index/resource_index/packages',
+            ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml', 'servo_center.csv']),
     ],
     zip_safe=True,
