@@ -1,8 +1,3 @@
-import sys
-import termios
-import tty
-import json
-import os
 from math import atan2, acos, sqrt, pi
 
 import rclpy
@@ -12,18 +7,6 @@ from sensor_msgs.msg import Joy
 from sensor_msgs.msg import JointState
 
 from custom.srv import LegInvKin
-
-
-def getch():
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(sys.stdin.fileno())
-        ch = sys.stdin.read(1)
-
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
 
 
 class JoySteer(Node):
