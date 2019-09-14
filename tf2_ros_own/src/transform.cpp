@@ -14,19 +14,8 @@
 
 using Transform = custom::srv::Transform;
 rclcpp::Node::SharedPtr node = nullptr;
-
-class echoListener {
-public:
-    tf2_ros_own::Buffer buffer_;
-    std::shared_ptr<tf2_ros_own::TransformListener> tfl_;
-
-    //constructor with name
-    echoListener(rclcpp::Clock::SharedPtr clock) : buffer_(clock) {
-        tfl_ = std::make_shared<tf2_ros_own::TransformListener>(buffer_);
-    }
-
-    ~echoListener() {}
-};
+std::unique_ptr<tf2_ros_own::Buffer> tfBuffer;
+std::unique_ptr<tf2_ros_own::TransformListener> tfListener;
 
 void handle_service(
     const std::shared_ptr<rmw_request_id_t> request_header,
@@ -42,14 +31,9 @@ void handle_service(
         "request: received"
     );
 
-    rclcpp::Clock::SharedPtr clock = node->get_clock();
-    echoListener echoListener(clock);
-    // Wait for up to one second for the first transforms to become avaiable. 
-    echoListener.buffer_.canTransform(request->source_frame, request->target_frame, tf2::TimePoint(), tf2::durationFromSec(1.0));
-
     try {
         geometry_msgs::msg::TransformStamped echo_transform;
-        echo_transform = echoListener.buffer_.lookupTransform(request->source_frame, request->target_frame, tf2::TimePoint());
+        echo_transform = tfBuffer->lookupTransform(request->source_frame, request->target_frame, tf2::TimePoint());
         std::cout << "At time " << echo_transform.header.stamp.sec << "." << echo_transform.header.stamp.nanosec << std::endl;
 
         auto translation = echo_transform.transform.translation;
@@ -73,30 +57,12 @@ int main(int argc, char ** argv) {
     //Initialize ROS
     rclcpp::init(argc, argv);
 
-//     // Allow 2 or 3 command line arguments
-//     if (argc < 3 || argc > 4) {
-//         printf("Usage: tf2_echo source_frame target_frame [echo_rate]\n\n");
-//         printf("This will echo the transform from the coordinate frame of the source_frame\n");
-//         printf("to the coordinate frame of the target_frame. \n");
-//         printf("Note: This is the transform to get data from target_frame into the source_frame.\n");
-//         printf("Default echo rate is 1 if echo_rate is not given.\n");
-//         return -1;
-//     }
-
     node = rclcpp::Node::make_shared("transform_service");
+    tfBuffer.reset(new tf2_ros_own::Buffer(node->get_clock()));
+    tfListener.reset(new tf2_ros_own::TransformListener(*tfBuffer));
     auto server = node->create_service<Transform>("transform_srv", handle_service);
     rclcpp::spin(node);
     rclcpp::shutdown();
     node = nullptr;
     return 0;
-
-//     rclcpp::Clock::SharedPtr clock = node->get_clock();
-//     //Instantiate a local listener
-//     echoListener echoListener(clock);
-
-
-//     std::string source_frameid = std::string(argv[1]);
-//     std::string target_frameid = std::string(argv[2]);
-
-//     }
 }
