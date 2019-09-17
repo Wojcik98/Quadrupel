@@ -22,14 +22,7 @@ void handle_service(
     const std::shared_ptr<Transform::Request> request,
     const std::shared_ptr<Transform::Response> response
 ) {
-    std::cout << "aaaaaa\n";
     (void)request_header;
-    (void)request;
-    (void)response;
-    RCLCPP_INFO(
-        node->get_logger(),
-        "request: received"
-    );
 
     try {
         geometry_msgs::msg::TransformStamped echo_transform;
@@ -41,6 +34,10 @@ void handle_service(
         response->x = translation.x;
         response->y = translation.y;
         response->z = translation.z;
+        response->qx = rotation.x;
+        response->qy = rotation.y;
+        response->qz = rotation.z;
+        response->qw = rotation.w;
         std::cout << "- Translation: [" << translation.x << ", " << translation.y << ", " << translation.z << "]" << std::endl;
         std::cout << "- Rotation: in Quaternion [" << rotation.x << ", " << rotation.y << ", " 
                             << rotation.z << ", " << rotation.w << "]" << std::endl;

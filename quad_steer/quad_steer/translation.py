@@ -9,6 +9,16 @@ from custom.srv import Transform, LegInvKin
 import numpy as np
 
 
+def quaternion_to_matrix(q):
+    x, y, z, w = q
+
+    return np.array([
+        [1 - 2*y**2 - 2*z**2, 2*x*y - 2*z*w, 2*x*z + 2*y*w],
+        [2*x*y + 2*z*w, 1 - 2*x**2 - 2*z**2, 2*y*z - 2*x*w],
+        [2*x*z - 2*y*w, 2*y*z + 2*x*w, 1 - 2*x**2 - 2*y**2],
+    ])
+
+
 class TranslationNode(Node):
     def __init__(self):
         super().__init__('translation')
@@ -77,11 +87,13 @@ class TranslationNode(Node):
             return (0.0, 0.0, 0.0)
 
         leg_base = (res.x, res.y, res.z)
+        rotation = (res.qx, res.qy, res.qz, res.qw)
         leg_base_2_odom = np.eye(4)
+        leg_base_2_odom[0:3, 0:3] = quaternion_to_matrix(rotation)
         leg_base_2_odom[0:3, 3] = leg_base
         leg_base_2_leg = np.matmul(leg_base_2_odom, self.odom2[leg])
 
-        x, y, z = leg_base_2_leg[0:3, 3]\
+        x, y, z = leg_base_2_leg[0:3, 3]
 
         req = LegInvKin.Request()
         req.x = x

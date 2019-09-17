@@ -24,8 +24,7 @@ def generate_launch_description():
         ),
         Node(
             package='quad_inv_kin',
-            node_executable='leg_inv_kin_srv',
-            output='screen'
+            node_executable='leg_inv_kin_srv'
         ),
         Node(
             package='joy',

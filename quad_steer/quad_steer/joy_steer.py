@@ -31,7 +31,9 @@ class JoySteer(Node):
     def listener_callback(self, msg):
         self.transform.transform.translation.x = msg.axes[3] * 0.02
         self.transform.transform.translation.y = msg.axes[2] * 0.03
-        self.transform.transform.translation.z = 0.08 + msg.axes[1] * 0.03
+        self.transform.transform.translation.z = 0.09
+        self.transform.transform.rotation.x = -msg.axes[0] * 0.1
+        self.transform.transform.rotation.y = msg.axes[1] * 0.1
         msg = TFMessage(transforms=[self.transform])
         self.broadcaster.publish(msg)
 
