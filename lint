@@ -1,4 +1,6 @@
 #!/bin/bash
+cd /home/michal/robots/quad/src
+
 flake8 . --exclude quad_vis/quad_vis/transformations.py,tf2_ros_own/src/tf2_ros_own > lint.txt
 
 if [ -s lint.txt ]
