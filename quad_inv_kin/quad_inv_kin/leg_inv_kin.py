@@ -37,12 +37,12 @@ class LegInvKinServer(Node):
         xy = sqrt(x**2 + y**2)
         a = 0.066
         b = 0.052
-        l = sqrt(xy**2 + z**2)
-        delta = acos((a**2 + b**2 - l**2) / (2 * a * b))
+        r = sqrt(xy**2 + z**2)
+        delta = acos((a**2 + b**2 - r**2) / (2 * a * b))
         gamma = pi - delta
 
         b1 = atan2(xy, -z)
-        b2 = acos((a**2 + l**2 - b**2) / (2 * a * l))
+        b2 = acos((a**2 + r**2 - b**2) / (2 * a * r))
         beta = b1 + b2
 
         return float(alpha), float(beta - pi/2), float(-gamma)

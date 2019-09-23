@@ -1,7 +1,7 @@
 from setuptools import setup
- 
+
 package_name = 'naive_crawl'
- 
+
 setup(
     name=package_name,
     version='0.0.1',

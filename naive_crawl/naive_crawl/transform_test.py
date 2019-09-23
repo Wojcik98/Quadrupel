@@ -1,12 +1,5 @@
-import sys
-import termios
-import tty
-from math import cos, sin
-
 import rclpy
 from rclpy.node import Node
-
-from sensor_msgs.msg import JointState
 
 from custom.srv import Transform
 
@@ -15,7 +8,6 @@ class TransformNode(Node):
     def __init__(self):
         super().__init__('transform_test')
 
-        # self.transform_node = rclpy.create_node('transform_test')
         self.timer_callback()
 
     def timer_callback(self):

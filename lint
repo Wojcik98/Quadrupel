@@ -1,0 +1,9 @@
+#!/bin/bash
+flake8 . --exclude quad_vis/quad_vis/transformations.py,tf2_ros_own/src/tf2_ros_own > lint.txt
+
+if [ -s lint.txt ]
+then
+     echo "Linter errors!"
+else
+     echo "Linter check OK"
+fi

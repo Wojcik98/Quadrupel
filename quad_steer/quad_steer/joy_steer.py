@@ -5,6 +5,7 @@ from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import Joy
 from tf2_msgs.msg import TFMessage
 
+
 class JoySteer(Node):
     def __init__(self):
         super().__init__('static_steer')
@@ -39,6 +40,7 @@ class JoySteer(Node):
         self.transform.transform.rotation.y = msg.axes[1] * 0.1
         msg = TFMessage(transforms=[self.transform])
         self.broadcaster.publish(msg)
+
 
 def main(args=None):
     rclpy.init(args=args)

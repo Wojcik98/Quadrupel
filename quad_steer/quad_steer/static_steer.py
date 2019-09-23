@@ -4,6 +4,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import TransformStamped
 from tf2_msgs.msg import TFMessage
 
+
 class StaticSteer(Node):
     def __init__(self):
         super().__init__('static_steer')
@@ -26,6 +27,7 @@ class StaticSteer(Node):
     def timer_callback(self):
         msg = TFMessage(transforms=[self.transform])
         self.broadcaster.publish(msg)
+
 
 def main(args=None):
     rclpy.init(args=args)

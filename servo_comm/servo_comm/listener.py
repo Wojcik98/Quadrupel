@@ -74,7 +74,8 @@ class ServoListener(Node):
         self.cache = msg
 
     def angle_to_duty(self, servo, angle):
-        duty = self.centers[servo] + int(angle * 1000. / (pi / 2.)) * self.dirs[servo]
+        displacement = int(angle * 1000. / (pi / 2.)) * self.dirs[servo]
+        duty = self.centers[servo] + displacement
         if duty < 0 and duty + 4000 <= 2550:
             duty += 4000    # reverse direction
         duty = max(duty, 460)

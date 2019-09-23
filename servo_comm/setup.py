@@ -1,7 +1,7 @@
 from setuptools import setup
- 
+
 package_name = 'servo_comm'
- 
+
 setup(
     name=package_name,
     version='0.0.1',
