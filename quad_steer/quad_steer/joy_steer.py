@@ -36,7 +36,7 @@ class JoySteer(Node):
         up = msg.buttons[5] - msg.buttons[7]
         self.transform.transform.translation.x = msg.axes[3] * 0.02
         self.transform.transform.translation.y = msg.axes[2] * 0.03
-        self.transform.transform.translation.z = 0.07 + up * 0.03
+        self.transform.transform.translation.z = 0.1 + up * 0.03
         self.transform.transform.rotation.x = -msg.axes[0] * 0.1
         self.transform.transform.rotation.y = msg.axes[1] * 0.1
         msg = TFMessage(transforms=[self.transform])
