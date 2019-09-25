@@ -74,5 +74,5 @@
 <joint name="${leg}_link3_to_${leg}_link4" type="fixed">
     <parent link="${leg}_link_3"/>
     <child link="${leg}_link_4"/>
-    <origin xyz="${i3_j_xyz}" rpy="${i3_j_rpy}"/>
+    <origin xyz="${i4_j_xyz}" rpy="${i4_j_rpy}"/>
 </joint>
