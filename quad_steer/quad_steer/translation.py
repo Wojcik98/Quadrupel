@@ -1,8 +1,10 @@
 from time import sleep
 
 import rclpy
+from geometry_msgs.msg import TransformStamped
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
+from tf2_msgs.msg import TFMessage
 
 from custom.srv import Transform, LegInvKin
 
@@ -25,14 +27,10 @@ class TranslationNode(Node):
         dx = 0.05
         dy = 0.08
         dz = 0.0
-        odom_2_front_left = np.eye(4)
-        odom_2_front_left[0:3, 3] = (dx, dy, dz)
-        odom_2_front_right = np.eye(4)
-        odom_2_front_right[0:3, 3] = (dx, -dy, dz)
-        odom_2_rear_left = np.eye(4)
-        odom_2_rear_left[0:3, 3] = (-dx, dy, dz)
-        odom_2_rear_right = np.eye(4)
-        odom_2_rear_right[0:3, 3] = (-dx, -dy, dz)
+        odom_2_front_left = (dx, dy, dz)
+        odom_2_front_right = (dx, -dy, dz)
+        odom_2_rear_left = (-dx, dy, dz)
+        odom_2_rear_right = (-dx, -dy, dz)
 
         self.odom2 = {
             'front_left': odom_2_front_left,
@@ -49,13 +47,14 @@ class TranslationNode(Node):
         while not self.inv_kin_cli.wait_for_service(timeout_sec=1.0):
             print('leg_inv_kin service not available, waiting again...')
 
+        self.broadcaster = self.create_publisher(TFMessage, '/tf_static', 10)
         self.pub = self.create_publisher(JointState, 'joint_states', 10)
-
         while True:
             sleep(0.02)
             self.timer_callback()
 
     def timer_callback(self):
+        self.send_legs()
         legs = ['front_left', 'front_right', 'rear_left', 'rear_right']
 
         names = []
@@ -78,7 +77,7 @@ class TranslationNode(Node):
     def leg_inv(self, leg):
         req = Transform.Request()
         req.source_frame = f'{leg}_base'
-        req.target_frame = 'odom'
+        req.target_frame = leg
         future = self.transform_cli.call_async(req)
         rclpy.spin_until_future_complete(self, future)
         res = future.result()
@@ -86,14 +85,7 @@ class TranslationNode(Node):
             print('transform error')
             return (0.0, 0.0, 0.0)
 
-        leg_base = (res.x, res.y, res.z)
-        rotation = (res.qx, res.qy, res.qz, res.qw)
-        leg_base_2_odom = np.eye(4)
-        leg_base_2_odom[0:3, 0:3] = quaternion_to_matrix(rotation)
-        leg_base_2_odom[0:3, 3] = leg_base
-        leg_base_2_leg = np.matmul(leg_base_2_odom, self.odom2[leg])
-
-        x, y, z = leg_base_2_leg[0:3, 3]
+        x, y, z = (res.x, res.y, res.z)
 
         req = LegInvKin.Request()
         req.x = x
@@ -108,8 +100,23 @@ class TranslationNode(Node):
 
         return future.result().angles
 
-    def destroy(self):
-        super().destroy()
+    def send_legs(self):
+        transforms = []
+        for leg, position in self.odom2.items():
+            transform = TransformStamped()
+            transform.transform.rotation.x = 0.0
+            transform.transform.rotation.y = 0.0
+            transform.transform.rotation.z = 0.0
+            transform.transform.rotation.w = 1.0
+            transform.header.frame_id = 'odom'
+            transform.child_frame_id = leg
+            transform.transform.translation.x = position[0]
+            transform.transform.translation.y = position[1]
+            transform.transform.translation.z = position[2]
+            transforms.append(transform)
+
+        msg = TFMessage(transforms=transforms)
+        self.broadcaster.publish(msg)
 
 
 def main(args=None):

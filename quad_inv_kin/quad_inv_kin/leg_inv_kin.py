@@ -38,7 +38,7 @@ class LegInvKinServer(Node):
         return response
 
     def calc(self, x, y, z):
-        alpha = atan2(y, x) # TODO use d
+        alpha = atan2(y, x)     # TODO use d
         w = sqrt(x**2 + y**2) - self.leg_desc[1]['a']
         z = z - self.leg_desc[1]['d']
         a = self.leg_desc[2]['a']
