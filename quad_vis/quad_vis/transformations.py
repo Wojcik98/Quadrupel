@@ -1923,7 +1923,8 @@ def _import_module(name, package=None, warn=True, postfix='_py', ignore='_'):
             module = import_module('.' + name, package=package)
     except ImportError as err:
         if warn:
-            warnings.warn(str(err))
+            pass
+            # warnings.warn(str(err))
     else:
         for attr in dir(module):
             if ignore and attr.startswith(ignore):

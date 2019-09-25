@@ -1,7 +1,9 @@
-import csv
+import json
+import os
 from string import Template
 from math import pi
 
+from ament_index_python.packages import get_package_share_directory
 from transformations import (translation_matrix, rotation_matrix,
                              concatenate_matrices, euler_from_matrix,
                              translation_from_matrix)
@@ -84,11 +86,13 @@ def raw_to_legs(raw_params: list):
 
 
 if __name__ == '__main__':
-    with open('legs_dh.csv', 'r') as file:
-        reader = csv.DictReader(file)
-        raw_params = [row for row in reader]
-
-    legs_params = raw_to_legs(raw_params)
+    params_path = os.path.join(
+        get_package_share_directory('quad_params'),
+        'quad_params.json'
+    )
+    with open(params_path, 'r') as file:
+        legs_params = json.load(file)
+    legs_params.pop('general', None)
 
     legs_description = [
         generate_leg(leg, params)
