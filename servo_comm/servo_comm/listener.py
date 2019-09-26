@@ -43,11 +43,12 @@ class ServoListener(Node):
         )
 
         self.cache = None
+        self.prev = None
         self.timer_period = 0.2
         self.tmr = self.create_timer(self.timer_period, self.timer_callback)
 
     def timer_callback(self):
-        if self.cache is None:
+        if self.cache is None or self.cache == self.prev:
             return
 
         data = self.cache
@@ -67,8 +68,9 @@ class ServoListener(Node):
         cmd += '\r\n'
         byts = cmd.encode('ascii')
         self.port.write(byts)
-
         self.get_logger().info(f'Command sent: "{cmd}"')
+
+        self.prev = self.cache
 
     def listener_callback(self, msg):
         self.cache = msg
