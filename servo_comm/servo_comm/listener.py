@@ -12,18 +12,18 @@ from sensor_msgs.msg import JointState
 
 class ServoListener(Node):
     joint_to_servo = {
-        f'rear_right_base_to_rear_right_link1': 1,
-        f'rear_right_link1_to_rear_right_link2': 2,
-        f'rear_right_link2_to_rear_right_link3': 3,
-        f'rear_left_base_to_rear_left_link1': 4,
-        f'rear_left_link1_to_rear_left_link2': 5,
-        f'rear_left_link2_to_rear_left_link3': 6,
-        f'front_right_base_to_front_right_link1': 7,
-        f'front_right_link1_to_front_right_link2': 8,
-        f'front_right_link2_to_front_right_link3': 9,
-        f'front_left_base_to_front_left_link1': 10,
-        f'front_left_link1_to_front_left_link2': 11,
-        f'front_left_link2_to_front_left_link3': 12,
+        f'rear_right_base_to_rear_right_link1': 10,
+        f'rear_right_link1_to_rear_right_link2': 11,
+        f'rear_right_link2_to_rear_right_link3': 12,
+        f'rear_left_base_to_rear_left_link1': 7,
+        f'rear_left_link1_to_rear_left_link2': 8,
+        f'rear_left_link2_to_rear_left_link3': 9,
+        f'front_right_base_to_front_right_link1': 4,
+        f'front_right_link1_to_front_right_link2': 5,
+        f'front_right_link2_to_front_right_link3': 6,
+        f'front_left_base_to_front_left_link1': 1,
+        f'front_left_link1_to_front_left_link2': 2,
+        f'front_left_link2_to_front_left_link3': 3,
     }
 
     def __init__(self):
