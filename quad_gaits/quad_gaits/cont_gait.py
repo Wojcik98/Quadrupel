@@ -18,8 +18,8 @@ def fract(x):
 class ContGait(Node):
     def __init__(self):
         super().__init__('naive_crawl')
-        self.stride = 0.1      # m
-        self.beta = 0.9         # duty factor
+        self.stride = 0.15      # m
+        self.beta = 0.8         # duty factor
         self.R = self.stride * self.beta
 
         tmp = self.beta - 0.5
@@ -35,7 +35,7 @@ class ContGait(Node):
             2: 'rear_left',
             3: 'rear_right',
         }
-        self.period = 10.0
+        self.period = 3.0
         self.t = 0.0
 
         self.pub = self.create_publisher(JointState, 'joint_states', 10)
@@ -64,25 +64,31 @@ class ContGait(Node):
     def timer_callback(self):
         phase = fract(self.t / self.period)
 
+        base_x = 0.05
         y = 0.03    # relative to leg
-        base_z = -0.13
+        base_z = -0.10
 
         names = []
         positions = []
         for i in range(4):
             leg = self.leg_mapping[i]
-            _, side = leg.split('_')
+            front, side = leg.split('_')
+            x_sign = 1. if front == 'front' else -1.
             y_sign = 1. if side == 'left' else -1.
 
-            if fract(self.phi[i] + phase) < self.beta:  # supporting
-                support_phase = fract(self.phi[i] + phase) / self.beta
-                x = (self.R / 2.) - self.R * support_phase
+            leg_phase = phase - self.phi[i]
+            if leg_phase < 0.0:
+                leg_phase += 1.0
+
+            if leg_phase < self.beta:  # supporting
+                support_phase = leg_phase / self.beta
+                x = x_sign * base_x + (self.R / 2.) - self.R * support_phase
                 z = base_z    # relative to leg
 
             else:   # transfer
                 transfer_phase = \
-                    (fract(self.phi[i] + phase) - self.beta) / (1 - self.beta)
-                x = (-self.R / 2.) + self.R * transfer_phase
+                    (leg_phase - self.beta) / (1 - self.beta)
+                x = x_sign * base_x + (-self.R / 2.) + self.R * transfer_phase
                 z = base_z + 0.05 * sin(transfer_phase * pi)
 
             req = LegInvKin.Request()
