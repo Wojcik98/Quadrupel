@@ -15,10 +15,10 @@ def fract(x):
     return modf(x)[0]
 
 
-class ContGait(Node):
+class DiscontGait(Node):
     def __init__(self):
-        super().__init__('cont_gait')
-        self.stride = 0.15      # m
+        super().__init__('discont_gait')
+        self.stride = 0.10      # m
         self.beta = 0.8         # duty factor
         self.R = self.stride * self.beta
 
@@ -35,7 +35,7 @@ class ContGait(Node):
             2: 'rear_left',
             3: 'rear_right',
         }
-        self.period = 3.0
+        self.period = 5.0
         self.t = 0.0
 
         self.pub = self.create_publisher(JointState, 'joint_states', 10)
@@ -63,14 +63,17 @@ class ContGait(Node):
 
     def timer_callback(self):
         phase = fract(self.t / self.period)
+        transfer_time = 1.0 - self.beta
 
-        base_x = 0.05
-        y = 0.03    # relative to leg
-        base_z = -0.10
+        base_x = 0.03
+        y = 0.02    # relative to leg
+        base_z = -0.13
 
         names = []
         positions = []
         for i in range(4):
+            changed = False
+            dx = 0.0
             leg = self.leg_mapping[i]
             front, side = leg.split('_')
             x_sign = 1. if front == 'front' else -1.
@@ -80,36 +83,55 @@ class ContGait(Node):
             if leg_phase < 0.0:
                 leg_phase += 1.0
 
-            if leg_phase < self.beta:  # supporting
-                support_phase = leg_phase / self.beta
-                x = x_sign * base_x + (self.R / 2.) - self.R * support_phase
-                z = base_z    # relative to leg
-
-            else:   # transfer
+            if leg_phase >= self.beta:  # transfer
+                changed = True
                 transfer_phase = \
                     (leg_phase - self.beta) / (1 - self.beta)
                 x = x_sign * base_x + (-self.R / 2.) + self.R * transfer_phase
                 z = base_z + 0.05 * sin(transfer_phase * pi)
+            elif (0.0 <= phase and phase <= (0.5 - 2 * transfer_time)):  # move
+                changed = True
+                move_phase = phase / (0.5 - 2 * transfer_time)
+                dx = (self.R / 2.) * move_phase
+                x = \
+                    x_sign * base_x + \
+                    ((side == 'left') * (self.R / 2.)) - \
+                    dx
+                z = base_z    # relative to leg
+                dx = (self.R / 2.) * move_phase
+            elif (0.5 <= phase and phase <= (1.0 - 2 * transfer_time)):  # move
+                changed = True
+                move_phase = (phase - 0.5) / (0.5 - 2 * transfer_time)
+                dx = (self.R / 2.) * move_phase
+                x = \
+                    x_sign * base_x + \
+                    ((side == 'right') * (self.R / 2.)) - \
+                    dx
+                z = base_z    # relative to leg
 
-            req = LegInvKin.Request()
-            req.x = x
-            req.y = y * y_sign
-            req.z = z
-            future = self.inv_kin_cli.call_async(req)
-            rclpy.spin_until_future_complete(self, future)
-            res = future.result()
+            if changed:
+                req = LegInvKin.Request()
+                req.x = x
+                req.y = y * y_sign
+                req.z = z
+                future = self.inv_kin_cli.call_async(req)
+                rclpy.spin_until_future_complete(self, future)
+                res = future.result()
 
-            if res is None or not res.success:
-                print('leg_inv_kin error')
-                continue
+                if res is None or not res.success:
+                    print('leg_inv_kin error')
+                    continue
 
-            a, b, g = res.angles
-            names += [
-                f'{leg}_base_to_{leg}_link1',
-                f'{leg}_link1_to_{leg}_link2',
-                f'{leg}_link2_to_{leg}_link3'
-            ]
-            positions += [a, b, g]
+                a, b, g = res.angles
+                names += [
+                    f'{leg}_base_to_{leg}_link1',
+                    f'{leg}_link1_to_{leg}_link2',
+                    f'{leg}_link2_to_{leg}_link3'
+                ]
+                positions += [a, b, g]
+
+                self.transform.transform.translation.x += \
+                    dx * self.timer_period
 
         msg = JointState()
         msg.name = names
@@ -117,8 +139,6 @@ class ContGait(Node):
 
         self.pub.publish(msg)
 
-        self.transform.transform.translation.x += \
-            (self.stride / self.period) * self.timer_period
         msg = TFMessage(transforms=[self.transform])
         self.broadcaster.publish(msg)
 
@@ -132,7 +152,7 @@ class ContGait(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    node = ContGait()
+    node = DiscontGait()
 
     rclpy.spin(node)
 
