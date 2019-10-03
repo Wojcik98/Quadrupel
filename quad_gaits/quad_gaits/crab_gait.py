@@ -1,10 +1,10 @@
-from math import cos, sin, modf, pi
+from math import atan2, cos, sin, modf, pi
 from time import sleep
 
 import rclpy
 from rclpy.node import Node
 
-from sensor_msgs.msg import JointState
+from sensor_msgs.msg import JointState, Joy
 from geometry_msgs.msg import TransformStamped
 from tf2_msgs.msg import TFMessage
 
@@ -21,7 +21,16 @@ class CrabGait(Node):
         self.stride = 0.10      # m
         self.beta = 0.8         # duty factor
         self.R = self.stride * self.beta
-        self.alpha = -pi * 1 / 8
+        self.alpha_cache = 0.0
+        self.cache_valid = False
+        self.alpha = 0.0
+
+        self.sub = self.create_subscription(
+            Joy,
+            'joy',
+            self.listener_callback,
+            10
+        )
 
         tmp = self.beta - 0.5
         self.phi = [
@@ -68,6 +77,12 @@ class CrabGait(Node):
 
     def timer_callback(self):
         phase = fract(self.t / self.period)
+        if phase < 0.2 and not self.cache_valid:
+            self.alpha = self.alpha_cache
+            print(self.alpha_cache * 180 / pi)
+            self.cache_valid = True
+        if phase > 0.8:
+            self.cache_valid = False
         transfer_time = 1.0 - self.beta
 
         base_x, base_y, base_z = self.base_x, self.base_y, self.base_z
@@ -170,6 +185,11 @@ class CrabGait(Node):
         self.broadcaster.publish(msg)
 
         self.t += self.timer_period
+
+    def listener_callback(self, msg):
+        joy_x = msg.axes[3]
+        joy_y = msg.axes[2]
+        self.alpha_cache = atan2(joy_y, joy_x)
 
     def destroy(self):
         self.inv_kin_node.destroy()

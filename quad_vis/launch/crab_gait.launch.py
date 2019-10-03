@@ -23,6 +23,10 @@ def generate_launch_description():
             node_executable='rviz2'
         ),
         Node(
+            package='joy',
+            node_executable='joy_node'
+        ),
+        Node(
             package='quad_inv_kin',
             node_executable='leg_inv_kin_srv',
         ),
