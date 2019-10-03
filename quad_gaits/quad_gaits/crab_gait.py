@@ -1,4 +1,4 @@
-from math import sin, modf, pi
+from math import cos, sin, modf, pi
 from time import sleep
 
 import rclpy
@@ -15,12 +15,13 @@ def fract(x):
     return modf(x)[0]
 
 
-class DiscontGait(Node):
+class CrabGait(Node):
     def __init__(self):
-        super().__init__('discont_gait')
+        super().__init__('crab_gait')
         self.stride = 0.10      # m
         self.beta = 0.8         # duty factor
         self.R = self.stride * self.beta
+        self.alpha = -pi * 1 / 8
 
         tmp = self.beta - 0.5
         self.phi = [
@@ -44,13 +45,17 @@ class DiscontGait(Node):
         while not self.inv_kin_cli.wait_for_service(timeout_sec=1.0):
             print('leg_inv_kin service not available, waiting again...')
 
+        self.base_x = 0.03
+        self.base_y = 0.04
+        self.base_z = -0.13
+
         self.broadcaster = self.create_publisher(TFMessage, '/tf', 10)
         self.transform = TransformStamped()
         self.transform.header.frame_id = 'odom'
         self.transform.child_frame_id = 'base_link'
         self.transform.transform.translation.x = 0.0
         self.transform.transform.translation.y = 0.0
-        self.transform.transform.translation.z = 0.1
+        self.transform.transform.translation.z = -self.base_z
         self.transform.transform.rotation.x = 0.0
         self.transform.transform.rotation.y = 0.0
         self.transform.transform.rotation.z = 0.0
@@ -65,15 +70,17 @@ class DiscontGait(Node):
         phase = fract(self.t / self.period)
         transfer_time = 1.0 - self.beta
 
-        base_x = 0.03
-        y = 0.02    # relative to leg
-        base_z = -0.13
+        base_x, base_y, base_z = self.base_x, self.base_y, self.base_z
+
+        ca, sa = cos(self.alpha), sin(self.alpha)
 
         names = []
         positions = []
         for i in range(4):
             changed = False
+            moved = False
             dx = 0.0
+            dy = 0.0
             leg = self.leg_mapping[i]
             front, side = leg.split('_')
             x_sign = 1. if front == 'front' else -1.
@@ -87,31 +94,49 @@ class DiscontGait(Node):
                 changed = True
                 transfer_phase = \
                     (leg_phase - self.beta) / (1 - self.beta)
-                x = x_sign * base_x + (-self.R / 2.) + self.R * transfer_phase
+                dr = (-self.R / 2.) + self.R * transfer_phase
+                dx = dr * ca
+                dy = dr * sa
+                x = x_sign * base_x + dx
+                y = y_sign * base_y + dy
                 z = base_z + 0.05 * sin(transfer_phase * pi)
             elif (0.0 <= phase and phase <= (0.5 - 2 * transfer_time)):  # move
                 changed = True
+                moved = True
                 move_phase = phase / (0.5 - 2 * transfer_time)
-                dx = (self.R / 2.) * move_phase
+                dr = (-self.R / 2.) * move_phase
+                dx = dr * ca
+                dy = dr * sa
                 x = \
                     x_sign * base_x + \
-                    ((side == 'left') * (self.R / 2.)) - \
+                    (side == 'left') * (self.R / 2.) * ca + \
                     dx
+                y = \
+                    y_sign * base_y + \
+                    (side == 'left') * (self.R / 2.) * sa + \
+                    dy
                 z = base_z    # relative to leg
             elif (0.5 <= phase and phase <= (1.0 - 2 * transfer_time)):  # move
                 changed = True
+                moved = True
                 move_phase = (phase - 0.5) / (0.5 - 2 * transfer_time)
-                dx = (self.R / 2.) * move_phase
+                dr = (-self.R / 2.) * move_phase
+                dx = dr * ca
+                dy = dr * sa
                 x = \
                     x_sign * base_x + \
-                    ((side == 'right') * (self.R / 2.)) - \
+                    (side == 'right') * (self.R / 2.) * ca + \
                     dx
+                y = \
+                    y_sign * base_y + \
+                    (side == 'right') * (self.R / 2.) * sa + \
+                    dy
                 z = base_z    # relative to leg
 
             if changed:
                 req = LegInvKin.Request()
                 req.x = x
-                req.y = y * y_sign
+                req.y = y
                 req.z = z
                 future = self.inv_kin_cli.call_async(req)
                 rclpy.spin_until_future_complete(self, future)
@@ -129,8 +154,11 @@ class DiscontGait(Node):
                 ]
                 positions += [a, b, g]
 
-                self.transform.transform.translation.x += \
-                    dx * self.timer_period
+        if moved:
+            self.transform.transform.translation.x += \
+                -dx * self.timer_period
+            self.transform.transform.translation.y += \
+                -dy * self.timer_period
 
         msg = JointState()
         msg.name = names
@@ -151,7 +179,7 @@ class DiscontGait(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    node = DiscontGait()
+    node = CrabGait()
 
     rclpy.spin(node)
 

@@ -31,6 +31,7 @@ setup(
         'console_scripts': [
             f'cont_gait = {package_name}.cont_gait:main',
             f'discont_gait = {package_name}.discont_gait:main',
+            f'crab_gait = {package_name}.crab_gait:main',
         ],
     },
 )
