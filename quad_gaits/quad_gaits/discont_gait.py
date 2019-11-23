@@ -18,7 +18,7 @@ def fract(x):
 class DiscontGait(Node):
     def __init__(self):
         super().__init__('discont_gait')
-        self.stride = 0.10      # m
+        self.stride = 0.14      # m
         self.beta = 0.8         # duty factor
         self.R = self.stride * self.beta
 
@@ -35,7 +35,7 @@ class DiscontGait(Node):
             2: 'rear_left',
             3: 'rear_right',
         }
-        self.period = 5.0
+        self.period = 0.5
         self.t = 0.0
 
         self.pub = self.create_publisher(JointState, 'joint_states', 10)
@@ -56,7 +56,7 @@ class DiscontGait(Node):
         self.transform.transform.rotation.z = 0.0
         self.transform.transform.rotation.w = 1.0
 
-        self.timer_period = 0.1
+        self.timer_period = 0.01
         while True:
             self.timer_callback()
             sleep(self.timer_period)
@@ -66,8 +66,8 @@ class DiscontGait(Node):
         transfer_time = 1.0 - self.beta
 
         base_x = 0.03
-        y = 0.02    # relative to leg
-        base_z = -0.13
+        y = 0.09    # relative to leg
+        base_z = -0.07
 
         names = []
         positions = []
