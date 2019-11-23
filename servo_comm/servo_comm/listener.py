@@ -10,33 +10,32 @@ from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import JointState
 
 
+class ServoConfig:
+    def __init__(self, center, dir_):
+        self.pin = 0
+        self.center = center
+        self.dir_ = dir_
+
+    def conn(self, pin):
+        self.pin = pin
+        return self
+
+
 class ServoListener(Node):
     joint_to_servo = {
-        f'rear_right_base_to_rear_right_link1': 3,
-        f'rear_right_link1_to_rear_right_link2': 4,
-        f'rear_right_link2_to_rear_right_link3': 5,
-        f'rear_left_base_to_rear_left_link1': 0,
-        f'rear_left_link1_to_rear_left_link2': 1,
-        f'rear_left_link2_to_rear_left_link3': 2,
-        f'front_right_base_to_front_right_link1': 9,
-        f'front_right_link1_to_front_right_link2': 10,
-        f'front_right_link2_to_front_right_link3': 11,
-        f'front_left_base_to_front_left_link1': 6,
-        f'front_left_link1_to_front_left_link2': 7,
-        f'front_left_link2_to_front_left_link3': 8,
+        f'rear_right_base_to_rear_right_link1': ServoConfig(500, -1).conn(3),
+        f'rear_right_link1_to_rear_right_link2': ServoConfig(880, -1).conn(4),
+        f'rear_right_link2_to_rear_right_link3': ServoConfig(1050, -1).conn(5),
+        f'rear_left_base_to_rear_left_link1': ServoConfig(2500, -1).conn(0),
+        f'rear_left_link1_to_rear_left_link2': ServoConfig(2320, 1).conn(1),
+        f'rear_left_link2_to_rear_left_link3': ServoConfig(1880, 1).conn(2),
+        f'front_right_base_to_front_right_link1': ServoConfig(500, -1).conn(9),
+        f'front_right_link1_to_front_right_link2': ServoConfig(2320, 1).conn(10),
+        f'front_right_link2_to_front_right_link3': ServoConfig(1900, 1).conn(11),
+        f'front_left_base_to_front_left_link1': ServoConfig(2430, -1).conn(6),
+        f'front_left_link1_to_front_left_link2': ServoConfig(830, -1).conn(7),
+        f'front_left_link2_to_front_left_link3': ServoConfig(1150, -1).conn(8),
     }
-    centers = [
-        2430, 770, 930,
-        480, 2350, 2120,
-        2550, 2270, 2130,
-        480, 830, 900
-    ]
-    dirs = [
-        -1, -1, 1,
-        -1, 1, -1,
-        -1, 1, -1,
-        -1, -1, 1
-    ]
 
     def __init__(self):
         super().__init__('servo_listener')
@@ -52,7 +51,7 @@ class ServoListener(Node):
 
         self.cache = None
         self.prev = None
-        self.timer_period = 1. / 50
+        self.timer_period = 1. / 100
         self.tmr = self.create_timer(self.timer_period, self.timer_callback)
 
     def timer_callback(self):
@@ -64,11 +63,11 @@ class ServoListener(Node):
         i = 0
         while i < len(data.name):
             joint = data.name[i]
-            servo = self.joint_to_servo[joint]
+            servo_config = self.joint_to_servo[joint]
             angle = data.position[i]
-            duty = self.angle_to_duty(servo, angle)
+            duty = self.angle_to_duty(servo_config, angle)
 
-            cmd += self.make_cmd(servo, duty)   # TODO set multiple targets
+            cmd += self.make_cmd(servo_config.pin, duty)   # TODO set multiple targets
 
             i += 1
 
@@ -77,19 +76,19 @@ class ServoListener(Node):
 
         self.prev = self.cache
 
-    def make_cmd(self, servo, duty):
+    def make_cmd(self, servo_pin, duty):
         mask = 2**7 - 1 # last 7 bits
         duty *= 4
         low = duty & mask
         high = int(duty / (2**7)) & mask
-        return bytearray([0x84, servo, low, high])
+        return bytearray([0x84, servo_pin, low, high])
 
     def listener_callback(self, msg):
         self.cache = msg
 
-    def angle_to_duty(self, servo, angle):
-        displacement = int(angle * 1000. / (pi / 2.)) * self.dirs[servo]
-        duty = self.centers[servo] + displacement
+    def angle_to_duty(self, servo_config, angle):
+        displacement = int(angle * 1000. / (pi / 2.)) * servo_config.dir_
+        duty = servo_config.center + displacement
         if duty < 0 and duty + 4000 <= 2550:
             duty += 4000    # reverse direction
         duty = max(duty, 460)
