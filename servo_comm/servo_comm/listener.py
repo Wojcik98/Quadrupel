@@ -12,28 +12,36 @@ from sensor_msgs.msg import JointState
 
 class ServoListener(Node):
     joint_to_servo = {
-        f'rear_right_base_to_rear_right_link1': 10,
-        f'rear_right_link1_to_rear_right_link2': 11,
-        f'rear_right_link2_to_rear_right_link3': 12,
-        f'rear_left_base_to_rear_left_link1': 7,
-        f'rear_left_link1_to_rear_left_link2': 8,
-        f'rear_left_link2_to_rear_left_link3': 9,
-        f'front_right_base_to_front_right_link1': 4,
-        f'front_right_link1_to_front_right_link2': 5,
-        f'front_right_link2_to_front_right_link3': 6,
-        f'front_left_base_to_front_left_link1': 1,
-        f'front_left_link1_to_front_left_link2': 2,
-        f'front_left_link2_to_front_left_link3': 3,
+        f'rear_right_base_to_rear_right_link1': 3,
+        f'rear_right_link1_to_rear_right_link2': 4,
+        f'rear_right_link2_to_rear_right_link3': 5,
+        f'rear_left_base_to_rear_left_link1': 0,
+        f'rear_left_link1_to_rear_left_link2': 1,
+        f'rear_left_link2_to_rear_left_link3': 2,
+        f'front_right_base_to_front_right_link1': 9,
+        f'front_right_link1_to_front_right_link2': 10,
+        f'front_right_link2_to_front_right_link3': 11,
+        f'front_left_base_to_front_left_link1': 6,
+        f'front_left_link1_to_front_left_link2': 7,
+        f'front_left_link2_to_front_left_link3': 8,
     }
+    centers = [
+        2430, 770, 930,
+        480, 2350, 2120,
+        2550, 2270, 2130,
+        480, 830, 900
+    ]
+    dirs = [
+        -1, -1, 1,
+        -1, 1, -1,
+        -1, 1, -1,
+        -1, -1, 1
+    ]
 
     def __init__(self):
         super().__init__('servo_listener')
         self.port = serial.Serial('/dev/ttyS0')
-        self.port.baudrate = 9600
-
-        self.centers = [0] * 13
-        self.dirs = [1] * 13
-        self.load_config()
+        self.port.baudrate = 115200
 
         self.subscription = self.create_subscription(
             JointState,
@@ -44,7 +52,7 @@ class ServoListener(Node):
 
         self.cache = None
         self.prev = None
-        self.timer_period = 0.2
+        self.timer_period = 1. / 50
         self.tmr = self.create_timer(self.timer_period, self.timer_callback)
 
     def timer_callback(self):
@@ -52,25 +60,29 @@ class ServoListener(Node):
             return
 
         data = self.cache
-        cmd = ''
+        cmd = bytearray()
         i = 0
-        time = int(self.timer_period * 1000)
         while i < len(data.name):
             joint = data.name[i]
             servo = self.joint_to_servo[joint]
             angle = data.position[i]
             duty = self.angle_to_duty(servo, angle)
 
-            cmd += f'#{servo}P{duty}T{time}'
+            cmd += self.make_cmd(servo, duty)   # TODO set multiple targets
 
             i += 1
 
-        cmd += '\r\n'
-        byts = cmd.encode('ascii')
-        self.port.write(byts)
+        self.port.write(cmd)
         self.get_logger().info(f'Command sent: "{cmd}"')
 
         self.prev = self.cache
+
+    def make_cmd(self, servo, duty):
+        mask = 2**7 - 1 # last 7 bits
+        duty *= 4
+        low = duty & mask
+        high = int(duty / (2**7)) & mask
+        return bytearray([0x84, servo, low, high])
 
     def listener_callback(self, msg):
         self.cache = msg
@@ -92,11 +104,10 @@ class ServoListener(Node):
 
         with open(path) as file:
             reader = csv.DictReader(file)
-            i = 1
             for row in reader:
-                self.centers[i] = int(row['zero'])
-                self.dirs[i] = int(row['dir'])
-                i += 1
+                servo = int(row['servo'])
+                self.centers[servo] = int(row['zero'])
+                self.dirs[servo] = int(row['dir'])
 
 
 def main(args=None):
